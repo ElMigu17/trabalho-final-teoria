@@ -81,7 +81,7 @@ def transicoes(estados, abc_fita, mt):
     return estados
 
 #escreve o estado da fita com 
-def escreve_saida(fita, estado_atual, saida):
+def escreve_saida(fita, estado_atual, saida, pos_fita):
     for a in range(len(fita)):
         if a == pos_fita:
             saida.write("{q"+str(estado_atual)+'}')
@@ -89,9 +89,9 @@ def escreve_saida(fita, estado_atual, saida):
     saida.write('\n')
 
 #caso tenha transicao, informa a posicao dela, caso nao tenha, retorna -1
-def tem_transicao(e, pos_fita):
+def tem_transicao(e, caracter):
     for aux in range(e.get_qtdt()):
-        if fita[pos_fita] == e.get_dt(aux, "char_in"):
+        if caracter == e.get_dt(aux, "char_in"):
             return aux 
     return -1
 
@@ -99,65 +99,67 @@ def tem_transicao(e, pos_fita):
 
 
 #inicio
-
-#abre arquivos
-try:
-    mt = open(sys.argv[1], 'r') #arquivo que contem descricao da mt (maquina de turing)
-except(e):
-    raise Exception("Houve problema ao abrir o arquivo de entrada.")
-    
-    
-#declaro variaveis
-estados = [] #armazena estados e suas transicoes
-abc_entrada = [] #alfabeto de entrada
-abc_fita = [] #alfabeto da fita
-estado_inicial = '' #estado inicial
-fita = '' #entrada da fita
-vet_apaga = "\t {},\n" #caracteres que devem ser apagados de algumas linhas
-
-#atribuo valor as variaves
-try:
-    estados = cria_estados(mt)
-    abc_entrada = limpa(mt.readline(), vet_apaga)
-    abc_fita = limpa(mt.readline(), vet_apaga)
-    estados = transicoes(estados, abc_fita, mt)
-    estado_inicial = int(limpa(mt.readline(), vet_apaga + 'q'), 10)
-    mt.readline()
-    fita = limpa(mt.readline(), vet_apaga)
-except(e):
-    raise Exception("Houve problema ao criar os estados")
-    
-if abc_entrada[0] != "1":
-    raise Exception("Alfabeto de entrada invalido. Alfabeto", abc_entrada)
-
-mt.close()
-
-try:
-    saida = open(sys.argv[2], 'w') #arquivo onde sera escrito o processamento da mt
-except(e):
-    raise Exception("Houve problemas ao criar o arquivo de saida.")
-#roda entrada na maquina
-estado_atual = estado_inicial
-pos_fita = 0
-pos_transicao = 0
-
-
-while pos_transicao != -1:
+def main():
+    #abre arquivos
     try:
-        e = estados[estado_atual]
-        pos_transicao = tem_transicao(e, pos_fita)
-        escreve_saida(fita, estado_atual, saida)
-        
-        if pos_transicao != -1:
-            fita = fita[:pos_fita] + e.get_dt(pos_transicao, "char_out") + fita[pos_fita+1:]
-            pos_fita = pos_fita + e.get_dt(pos_transicao, "mov_fita")
-            if(pos_fita == len(fita)):
-                fita = fita + "B"
-            estado_atual = e.get_dt(pos_transicao, "prox_estado")
+        mt = open(sys.argv[1], 'r') #arquivo que contem descricao da mt (maquina de turing)
     except(e):
-        raise Exception("Houve problema na execução da maquina\n: ", e)
-    
+        raise Exception("Houve problema ao abrir o arquivo de entrada.")
+        
+        
+    #declaro variaveis
+    estados = [] #armazena estados e suas transicoes
+    abc_entrada = [] #alfabeto de entrada
+    abc_fita = [] #alfabeto da fita
+    estado_inicial = '' #estado inicial
+    fita = '' #entrada da fita
+    vet_apaga = "\t {},\n" #caracteres que devem ser apagados de algumas linhas
+
+    #atribuo valor as variaves
+    try:
+        estados = cria_estados(mt)
+        abc_entrada = limpa(mt.readline(), vet_apaga)
+        abc_fita = limpa(mt.readline(), vet_apaga)
+        estados = transicoes(estados, abc_fita, mt)
+        estado_inicial = int(limpa(mt.readline(), vet_apaga + 'q'), 10)
+        mt.readline()
+        fita = limpa(mt.readline(), vet_apaga)
+    except(e):
+        raise Exception("Houve problema ao criar os estados")
+        
+    if abc_entrada[0] != "1" or len(abc_entrada) > 1:
+        raise Exception("Alfabeto de entrada invalido.")
+
+    mt.close()
+
+    try:
+        saida = open(sys.argv[2], 'w') #arquivo onde sera escrito o processamento da mt
+    except(e):
+        raise Exception("Houve problemas ao criar o arquivo de saida.")
+    #roda entrada na maquina
+    estado_atual = estado_inicial
+    pos_fita = 0
+    pos_transicao = 0
 
 
-saida.close()
-#fim
+    while pos_transicao != -1:
+        try:
+            e = estados[estado_atual]
+            pos_transicao = tem_transicao(e, fita[pos_fita])
+            escreve_saida(fita, estado_atual, saida, pos_fita)
+            
+            if pos_transicao != -1:
+                fita = fita[:pos_fita] + e.get_dt(pos_transicao, "char_out") + fita[pos_fita+1:]
+                pos_fita = pos_fita + e.get_dt(pos_transicao, "mov_fita")
+                if(pos_fita == len(fita)):
+                    fita = fita + "B"
+                estado_atual = e.get_dt(pos_transicao, "prox_estado")
+        except(e):
+            raise Exception("Houve problema na execução da maquina\n: ", e)
+        
+
+
+    saida.close()
+    #fim
+if __name__ == "__main__":
+    main()
